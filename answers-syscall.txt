@@ -1,0 +1,16 @@
+1. usertrap called syscall;
+
+2. The value is 7. It represents SYS_exec. a7 holds the system call number.
+
+3. Previous mode was user mode. 0
+
+4. 80001c92:	00002683          	lw	a3,0(zero) # 0 <_entry-0x80000000>
+Register a3 corresponds to num
+
+5. scause=0xd -> this is a load page fault
+stval=0x0 -> address 0
+The kernel crashes because address 0 is not mapped, it is the null pointer. Trying to access it causes a page fault.
+
+6.
+process name: initcode
+pid: 1

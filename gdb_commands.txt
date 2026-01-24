@@ -1,0 +1,25 @@
+Ctrl+b then % - Split vertically (new pane on right)
+Ctrl+b then " - Split horizontally (new pane below)
+Ctrl+b then arrow keys - Switch between panes
+Ctrl+b then x - Close current pane (or type exit)
+Ctrl+b then z - Zoom/unzoom current pane (fullscreen toggle)
+
+Windows:
+Ctrl+b then c - Create new window
+Ctrl+b then n - Next window
+Ctrl+b then p - Previous window
+Ctrl+b then 0-9 - Switch to window number
+Ctrl+b then & - Close current window
+Sessions:
+Ctrl+b then d - Detach from session (keeps it running)
+tmux attach or tmux a - Reattach to session
+tmux ls - List all sessions
+Other useful:
+Ctrl+b then ? - Show all key bindings (help)
+Ctrl+b then : - Enter command mode
+Quick reference:
+New pane: Ctrl+b % (vertical) or Ctrl+b " (horizontal)
+Switch panes: Ctrl+b arrow keys
+Close pane: Ctrl+b x or type exit
+Zoom pane: Ctrl+b z
+Most people use Ctrl+b as the prefix, but you can change it if needed.
