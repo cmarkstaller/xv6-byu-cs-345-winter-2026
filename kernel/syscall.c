@@ -101,7 +101,7 @@ extern uint64 sys_unlink(void);
 extern uint64 sys_link(void);
 extern uint64 sys_mkdir(void);
 extern uint64 sys_close(void);
-extern unit64 sys_trace(void);
+extern uint64 sys_trace(void);
 
 static char* syscall_names[] = {
   [SYS_fork]    "fork",
@@ -169,7 +169,7 @@ syscall(void)
 
     // Print trace output if this syscall is being traced
     if((p->trace_mask >> num) & 1) {
-      printf("%d: syscall %s -> %d\n", p->pid, syscall_names[num], p->trapframe->a0);
+      printf("%d: syscall %s -> %d\n", p->pid, syscall_names[num], (int)p->trapframe->a0);
     }
   } else {
     printf("%d %s: unknown sys call %d\n",
