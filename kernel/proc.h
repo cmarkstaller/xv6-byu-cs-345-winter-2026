@@ -81,10 +81,17 @@ struct trapframe {
 
 enum procstate { UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 
+#ifdef LAB_PGTBL
+struct usyscall;
+#endif
+
 // Per-process state
 struct proc {
   struct spinlock lock;
 
+  #ifdef LAB_PGTBL
+  struct usyscall *usyscall;
+  #endif
   // p->lock must be held when using these:
   enum procstate state;        // Process state
   void *chan;                  // If non-zero, sleeping on chan
