@@ -23,11 +23,41 @@ struct {
   struct run *freelist;
 } kmem;
 
+#ifdef LAB_PGTBL
+#define NSUPERPAGES 2
+
+struct {
+  struct spinlock lock;
+  void *base[NSUPERPAGES];  // 2MB-aligned regions
+  int used[NSUPERPAGES];
+} supermem;
+#endif
+
 void
 kinit()
 {
   initlock(&kmem.lock, "kmem");
+
+#ifdef LAB_PGTBL
+  initlock(&supermem.lock, "supermem");
+
+  // Reserve a few 2MB-aligned regions for superpages.
+  char *p = (char*)PGROUNDUP((uint64)end);
+  int nsuper = 0;
+
+  for(; p + SUPERPGSIZE <= (char*)PHYSTOP && nsuper < NSUPERPAGES; p += SUPERPGSIZE){
+    if(((uint64)p % SUPERPGSIZE) == 0){
+      supermem.base[nsuper] = p;
+      supermem.used[nsuper] = 0;
+      nsuper++;
+    }
+  }
+
+  // The rest can be used as normal 4KB pages.
+  freerange(p, (void*)PHYSTOP);
+#else
   freerange(end, (void*)PHYSTOP);
+#endif
 }
 
 void
@@ -80,3 +110,35 @@ kalloc(void)
     memset((char*)r, 5, PGSIZE); // fill with junk
   return (void*)r;
 }
+
+#ifdef LAB_PGTBL
+void *
+superalloc(void)
+{
+  acquire(&supermem.lock);
+  for(int i = 0; i < NSUPERPAGES; i++){
+    if(supermem.base[i] && supermem.used[i] == 0){
+      supermem.used[i] = 1;
+      void *p = supermem.base[i];
+      release(&supermem.lock);
+      memset(p, 5, SUPERPGSIZE);
+      return p;
+    }
+  }
+  release(&supermem.lock);
+  return 0;
+}
+
+void
+superfree(void *pa)
+{
+  acquire(&supermem.lock);
+  for(int i = 0; i < NSUPERPAGES; i++){
+    if(supermem.base[i] == pa){
+      supermem.used[i] = 0;
+      break;
+    }
+  }
+  release(&supermem.lock);
+}
+#endif
