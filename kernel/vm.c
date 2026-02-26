@@ -181,13 +181,13 @@ mappages_superpage(pagetable_t pagetable, uint64 va, uint64 pa, int perm)
   if(*pte1 & PTE_V)
     panic("mappages_superpage: remap");
 
-  *pte1 = PA2PTE(pa) | perm | PTE_V; // leaf at level-1
+  *pte1 = PA2PTE(pa) | perm | PTE_V;
   return 0;
 }
 #endif
 
 #ifdef LAB_PGTBL
-// Like walk(), but also reports the level (2,1,0) of the leaf PTE.
+// Like walk(), but also reports the level of the leaf PTE.
 static pte_t *
 walk_with_level(pagetable_t pagetable, uint64 va, int alloc, int *levelp)
 {
@@ -197,7 +197,7 @@ walk_with_level(pagetable_t pagetable, uint64 va, int alloc, int *levelp)
   for(int level = 2; level > 0; level--){
     pte_t *pte = &pagetable[PX(level, va)];
     if(*pte & PTE_V){
-      // Stop early if this is already a leaf (e.g., superpage).
+      // Stop early if this is already a leaf.
       if(PTE_LEAF(*pte)){
         if(levelp)
           *levelp = level;
@@ -352,8 +352,7 @@ uvmalloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz, int xperm)
     return oldsz;
 
 #ifdef LAB_PGTBL
-  // Try to allocate one 2MB superpage if the grown region is big enough
-  // and contains a 2MB-aligned subrange.
+  // Try to allocate one 2MB superpage.
   uint64 super_start = SUPERPGROUNDUP(oldsz);
   uint64 super_end   = super_start + SUPERPGSIZE;
 
@@ -378,19 +377,19 @@ uvmalloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz, int xperm)
     }
   }
 
-  // 2) Install a single 2MB superpage, if applicable.
+  // 2) Install a single 2MB superpage.
   if(use_super){
     void *spa = superalloc();
     if(spa == 0){
-      // No superpage available: just map the remainder with 4KB pages.
-      a = super_start;        // start 4KB mapping at the place we planned superpage
+      // No superpage available.
+      a = super_start;        // start 4KB mapping
     } else {
       if(mappages_superpage(pagetable, super_start, (uint64)spa,
                             PTE_R|PTE_W|PTE_U|xperm) < 0){
         superfree(spa);
         return 0;
       }
-      a = super_end;          // skip over the 2MB superpage
+      a = super_end;
     }
   }
 

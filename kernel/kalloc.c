@@ -28,7 +28,7 @@ struct {
 
 struct {
   struct spinlock lock;
-  void *base[NSUPERPAGES];  // 2MB-aligned regions
+  void *base[NSUPERPAGES];
   int used[NSUPERPAGES];
 } supermem;
 #endif
@@ -38,23 +38,28 @@ kinit()
 {
   initlock(&kmem.lock, "kmem");
 
-#ifdef LAB_PGTBL
+  #ifdef LAB_PGTBL
   initlock(&supermem.lock, "supermem");
 
-  // Reserve a few 2MB-aligned regions for superpages.
   char *p = (char*)PGROUNDUP((uint64)end);
   int nsuper = 0;
 
-  for(; p + SUPERPGSIZE <= (char*)PHYSTOP && nsuper < NSUPERPAGES; p += SUPERPGSIZE){
-    if(((uint64)p % SUPERPGSIZE) == 0){
+  for(; p + PGSIZE <= (char*)PHYSTOP; p += PGSIZE){
+    // Is there still room to reserve more superpages?
+    if(nsuper < NSUPERPAGES &&
+       ((uint64)p % SUPERPGSIZE) == 0 &&
+       p + SUPERPGSIZE <= (char*)PHYSTOP){
       supermem.base[nsuper] = p;
       supermem.used[nsuper] = 0;
       nsuper++;
-    }
-  }
 
-  // The rest can be used as normal 4KB pages.
-  freerange(p, (void*)PHYSTOP);
+      // Skip over the rest of this 2MB superpage region.
+      p += SUPERPGSIZE - PGSIZE;
+      continue;
+    }
+
+    kfree(p);
+  }
 #else
   freerange(end, (void*)PHYSTOP);
 #endif

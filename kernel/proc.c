@@ -220,7 +220,7 @@ proc_pagetable(struct proc *p)
   }
 
   #ifdef LAB_PGTBL
-  // map the usyscall page (shared read-only data) below TRAPFRAME.
+  // map the usyscall page below grapframe.
   if(mappages(pagetable, USYSCALL, PGSIZE,
               (uint64)(p->usyscall), PTE_R | PTE_U) < 0){
     uvmunmap(pagetable, TRAPFRAME, 1, 0);
